@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 // Данные конфига: хранят ссылку на Entity-префаб башни
@@ -6,6 +7,7 @@ using UnityEngine;
 public class GameConfigAuthoring : MonoBehaviour
 {
     public GameObject TowerPrefab; // Сюда перетащим префаб цилиндра
+    public TeamColorsConfig TeamColors;
 
     class Baker : Baker<GameConfigAuthoring>
     {
@@ -16,6 +18,19 @@ public class GameConfigAuthoring : MonoBehaviour
             {
                 TowerPrefab = GetEntity(authoring.TowerPrefab, TransformUsageFlags.Dynamic)
             });
+
+            if (authoring.TeamColors != null)
+            {
+                var buffer = AddBuffer<TeamColorElement>(entity);
+
+                foreach (var color in authoring.TeamColors.Colors)
+                {
+                    buffer.Add(new TeamColorElement
+                    {
+                        Value = new float4(color.r, color.g, color.b, color.a)
+                    });
+                }
+            }
         }
     }
 }
@@ -23,4 +38,9 @@ public class GameConfigAuthoring : MonoBehaviour
 public struct GameConfig : IComponentData
 {
     public Entity TowerPrefab;
+}
+
+public struct TeamColorElement : IBufferElementData
+{
+    public float4 Value;
 }

@@ -33,7 +33,9 @@ public partial struct ServerSpawningSystem : ISystem
 
             var spawnPointEntity = Entity.Null;
             var spawnPosition = float3.zero;
+            var assignedTeamId = 0;
             var foundPoint = false;
+            int pointIndex = 0; 
 
             foreach (var (sp, spEntity) in SystemAPI.Query<RefRW<SpawnPoint>>().WithEntityAccess())
             {
@@ -42,13 +44,15 @@ public partial struct ServerSpawningSystem : ISystem
                     sp.ValueRW.IsOccupied = true;
                     sp.ValueRW.OccupiedByNetworkID = playerId;
 
-                    spawnPosition = sp.ValueRO.Position;
                     spawnPointEntity = spEntity;
+                    spawnPosition = sp.ValueRO.Position;
+                    assignedTeamId = pointIndex; 
                     foundPoint = true;
 
                     Debug.Log($"[Server] Точка найдена: {spawnPosition}");
                     break; // Берем первую попавшуюся и выходим
                 }
+                pointIndex++;
             }
 
             if (!foundPoint)
@@ -59,8 +63,8 @@ public partial struct ServerSpawningSystem : ISystem
 
             var towerEntity = ecb.Instantiate(config.TowerPrefab);
             ecb.SetComponent(towerEntity, LocalTransform.FromPosition(spawnPosition));
-            ecb.SetComponent(towerEntity, new FractionID { Value = playerId });
-            ecb.AddComponent(towerEntity, new GhostOwner { NetworkId = playerId });
+            ecb.SetComponent(towerEntity, new FractionID { Value = assignedTeamId });
+            ecb.AddComponent(towerEntity, new GhostOwner { NetworkId = netId.ValueRO.Value });
             
             ecb.AddComponent<PlayerSpawnedTag>(entity);
             ecb.AppendToBuffer(entity, new LinkedEntityGroup { Value = towerEntity });

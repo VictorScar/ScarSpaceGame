@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.NetCode;
 using UnityEngine;
 
+[GhostComponent]
 public struct FractionID : IComponentData
 {
-    public int Value;
+    [GhostField] public int Value;
 }

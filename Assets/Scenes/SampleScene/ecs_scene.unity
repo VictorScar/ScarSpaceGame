@@ -221,7 +221,6 @@ GameObject:
   - component: {fileID: 1442593038}
   - component: {fileID: 1442593039}
   - component: {fileID: 1442593040}
-  - component: {fileID: 1442593041}
   m_Layer: 0
   m_Name: game config
   m_TagString: Untagged
@@ -258,6 +257,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TowerPrefab: {fileID: 3085978381621326964, guid: 05606f3127a3b0b4e89f7927202c906f,
     type: 3}
+  TeamColors: {fileID: 11400000, guid: 66c8ffe2974fb2d4981244714973213c, type: 2}
 --- !u!114 &1442593040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -270,19 +270,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1442593041
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1442593037}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 695152d181a4e4e4e88d8d9f6acd925a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Ghosts: []
 --- !u!1 &1834784914
 GameObject:
   m_ObjectHideFlags: 0
