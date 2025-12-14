@@ -23,7 +23,8 @@ public partial struct ServerSpawningSystem : ISystem
         var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
-        foreach (var (netId, entity) in SystemAPI.Query<RefRO<NetworkId>>()
+        foreach (var (netId, playerData, entity) in SystemAPI.Query<RefRO<NetworkId>,
+                         RefRO<PlayerData>>()
                      .WithAll<NetworkStreamInGame>()
                      .WithNone<PlayerSpawnedTag>()
                      .WithEntityAccess())
@@ -33,9 +34,9 @@ public partial struct ServerSpawningSystem : ISystem
 
             var spawnPointEntity = Entity.Null;
             var spawnPosition = float3.zero;
-            var assignedTeamId = 0;
+           
             var foundPoint = false;
-            int pointIndex = 0; 
+            int pointIndex = 0;
 
             foreach (var (sp, spEntity) in SystemAPI.Query<RefRW<SpawnPoint>>().WithEntityAccess())
             {
@@ -46,12 +47,12 @@ public partial struct ServerSpawningSystem : ISystem
 
                     spawnPointEntity = spEntity;
                     spawnPosition = sp.ValueRO.Position;
-                    assignedTeamId = pointIndex; 
-                    foundPoint = true;
+                   foundPoint = true;
 
                     Debug.Log($"[Server] Точка найдена: {spawnPosition}");
                     break; // Берем первую попавшуюся и выходим
                 }
+
                 pointIndex++;
             }
 
@@ -63,9 +64,9 @@ public partial struct ServerSpawningSystem : ISystem
 
             var towerEntity = ecb.Instantiate(config.TowerPrefab);
             ecb.SetComponent(towerEntity, LocalTransform.FromPosition(spawnPosition));
-            ecb.SetComponent(towerEntity, new FractionID { Value = assignedTeamId });
+            ecb.SetComponent(towerEntity, new FractionID { Value = playerData.ValueRO.ColorID });
             ecb.AddComponent(towerEntity, new GhostOwner { NetworkId = netId.ValueRO.Value });
-            
+
             ecb.AddComponent<PlayerSpawnedTag>(entity);
             ecb.AppendToBuffer(entity, new LinkedEntityGroup { Value = towerEntity });
         }

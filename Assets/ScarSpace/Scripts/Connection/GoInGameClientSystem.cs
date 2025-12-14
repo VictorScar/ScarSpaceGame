@@ -6,7 +6,7 @@ using UnityEngine; // Для Debug.Log
 
 public struct GoInGameRequest : IRpcCommand
 {
-    // Пустая структура, данные не нужны
+    public int DesiredColorID; 
 }
 
 // 1. Клиентская часть
@@ -47,22 +47,36 @@ public partial struct GoInGameClientSystem : ISystem
 // 2. Серверная часть
 [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
 [BurstCompile]
-public partial struct GoInGameServerSystem : ISystem
+public partial class GoInGameServerSystem : SystemBase
 {
     [BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    protected override void OnUpdate()
     {
         var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-            .CreateCommandBuffer(state.WorldUnmanaged);
+            .CreateCommandBuffer(World.Unmanaged);
 
+        if (!SystemAPI.TryGetSingletonRW<ServerGameState>(out var serverState))
+        {
+            var entity = EntityManager.CreateEntity(typeof(ServerGameState));
+            EntityManager.SetComponentData(entity, new ServerGameState{NextColorIndex = 0});
+            return;
+        }
+        
         // Ищем входящие запросы RPC
         foreach (var (req, sourceConn, entity) in SystemAPI.Query<RefRO<GoInGameRequest>, RefRO<ReceiveRpcCommandRequest>>()
                      .WithEntityAccess())
         {
-            // ЛОГ!
-            Debug.Log("[Server] Получен запрос GoInGame! Добавляю игрока в игру.");
 
             var connectionEntity = sourceConn.ValueRO.SourceConnection;
+            var assignedColorId = serverState.ValueRO.NextColorIndex;
+            serverState.ValueRW.NextColorIndex++;
+            
+            ecb.AddComponent(connectionEntity, new PlayerData
+            {
+                ColorID = assignedColorId
+            });
+            
+            Debug.Log($"[Server] Игрок зашел. Выдан ColorID: {assignedColorId}");
             ecb.AddComponent<NetworkStreamInGame>(connectionEntity);
             ecb.DestroyEntity(entity);
         }
